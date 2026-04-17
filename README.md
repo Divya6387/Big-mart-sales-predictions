@@ -35,12 +35,6 @@ The data scientists at BigMart collected 2013 sales data for 1,559 products acro
 ## Setup and Usage
 
 ### Step 1 — Clone the repository
-
-bash
-git clone https://github.com/your-username/bigmart-sales-prediction.git
-cd bigmart-sales-prediction
-
-
 ### Step 2 — Install dependencies
 
 bash
