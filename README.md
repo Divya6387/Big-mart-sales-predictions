@@ -1,69 +1,130 @@
- BigMart Sales Prediction
+# BigMart Sales Prediction
 
-Analytics Vidhya Hackathon – Predict item-level sales across BigMart outlets.
+Predict item-level sales across BigMart outlets using machine learning.
+
+Analytics Vidhya Hackathon — Big Mart Sales III
+
+---
+
+## Problem Statement
+
+The data scientists at BigMart collected 2013 sales data for 1,559 products across 10 stores in different cities. The goal is to build a predictive model that estimates the sales of each product at a particular outlet.
+
+- **Train set:** 8,523 rows (includes target column `Item_Outlet_Sales`)
+- **Test set:** 5,681 rows (predict `Item_Outlet_Sales`)
+- **Evaluation metric:** Root Mean Squared Error (RMSE)
 
 
-Problem Statement
-The data scientists at BigMart have collected 2013 sales data for 1,559 products across 10 stores in different cities. The goal is to build a predictive model that estimates the sales of each product at a particular outlet — helping BigMart understand what properties of products and stores drive sales.
+## Data Dictionary
 
-Train set: 8,523 rows (with Item_Outlet_Sales as target)
-Test set: 5,681 rows (predict Item_Outlet_Sales)
-Evaluation metric: Root Mean Squared Error (RMSE)
+| Variable | Description |
 
-Data Dictionary
-VariableDescriptionItem_IdentifierUnique product IDItem_WeightWeight of productItem_Fat_ContentLow Fat / RegularItem_Visibility% of total display area in storeItem_TypeCategory of productItem_MRPMaximum Retail PriceOutlet_IdentifierUnique store IDOutlet_Establishment_YearYear store was establishedOutlet_SizeStore size (Small / Medium / High)Outlet_Location_TypeTier 1 / 2 / 3 cityOutlet_TypeGrocery Store or Supermarket typeItem_Outlet_SalesTARGET – Sales value to predict
+| Item_Identifier | Unique product ID |
+| Item_Weight | Weight of product |
+| Item_Fat_Content | Low Fat or Regular |
+| Item_Visibility | Percentage of total display area in store |
+| Item_Type | Category of product |
+| Item_MRP | Maximum Retail Price |
+| Outlet_Identifier | Unique store ID |
+| Outlet_Establishment_Year | Year store was established |
+| Outlet_Size | Store size — Small, Medium, High |
+| Outlet_Location_Type | Tier 1, Tier 2, or Tier 3 city |
+| Outlet_Type | Grocery Store or Supermarket type |
+| Item_Outlet_Sales | TARGET — Sales value to predict |
 
-Setup & Usage
-1. Clone the repository
-bashgit clone https://github.com/<your-username>/bigmart-sales-prediction.git
+## Setup and Usage
+
+### Step 1 — Clone the repository
+
+bash
+git clone https://github.com/your-username/bigmart-sales-prediction.git
 cd bigmart-sales-prediction
-2. Install dependencies
-bashpip install -r requirements.txt
-3. Add data files
-Place train_v9rqX0R.csv and test_AbJTz2l.csv inside the data/ folder.
-Update TRAIN_PATH and TEST_PATH at the top of solution.py if needed.
-4. Run the pipeline
-bashpython solution.py
-This will:
-
-Clean and impute missing values
-Engineer new features
-Train XGBoost, LightGBM, and Ridge models with 5-Fold CV
-Save the ensemble submission to outputs/submission.csv
 
 
-Data Cleaning & Imputation
-IssueFixItem_Weight missing (~17%)Filled with per-item mean across all rowsOutlet_Size missing (~29%)Filled with mode per Outlet_TypeItem_Visibility = 0 (impossible)Replaced with per-item mean visibilityItem_Fat_Content inconsistent labelsStandardised: LF / low fat → Low Fat, reg → RegularNon-edible items with fat labelsRe-labeled as Non-Edible
+### Step 2 — Install dependencies
 
-Feature Engineering
-New FeatureDescriptionOutlet_Age2013 − Outlet_Establishment_YearItem_CategoryFirst 2 chars of Item_Identifier (FD = Food, NC = Non-consumable, DR = Drink)Visibility_RatioItem visibility ÷ item's mean visibilityMRP_BucketCut Item_MRP into 4 bins: Low / Medium / High / Very HighIs_GroceryBinary flag: 1 if Grocery Store, else 0
-
-Models & Results
-ModelCV RMSE (log-space)XGBoost~0.561LightGBM~0.545Ridge~0.543Ensemble (45/45/10)Best
-
-The target Item_Outlet_Sales is log1p-transformed during training and expm1-transformed back for submission (reduces skew, helps tree models).
-
-Ensemble Strategy
-Predictions are weighted-averaged:
-45% XGBoost
-45% LightGBM
-10% Ridge
+bash
+pip install -r requirements.txt
 
 
-Key Insights ->
-Item_MRP is by far the strongest predictor of sales.
-Outlet_Type (Grocery vs Supermarket) drastically affects sales volume.
-Outlet_Age adds signal — older, established stores tend to have steadier sales.
-Fixing zero-visibility values meaningfully improves model performance.
-Standardising fat content labels prevents the model from treating duplicates as separate categories.
+### Step 3 — Add data files
+
+Place `train_v9rqX0R.csv` and `test_AbJTz2l.csv` inside the `data/` folder.
+
+Update `TRAIN_PATH` and `TEST_PATH` at the top of `solution.py` if needed.
+
+### Step 4 — Run the pipeline
 
 
- Requirements ->
-See requirements.txt. Main packages:
-pandas, numpy
+python solution.py
+
+
+This will automatically:
+
+1. Load and explore the data
+2. Clean and impute missing values
+3. Engineer new features
+4. Train XGBoost, LightGBM, and Ridge models with 5-Fold CV
+5. Save the ensemble predictions to `outputs/submission.csv`
+
+
+## Data Cleaning
+
+| Problem | Fix Applied |
+
+| Item_Weight missing 17% | Filled with per-item mean across all rows |
+| Outlet_Size missing 29% | Filled with mode per Outlet_Type |
+| Item_Visibility equals zero | Replaced with per-item mean since zero is physically impossible |
+| Item_Fat_Content inconsistent labels | Standardised LF and low fat to Low Fat, reg to Regular |
+| Non-edible items had fat content labels | Re-labeled as Non-Edible |
+
+## Feature Engineering
+
+| New Feature | Description |
+
+| Outlet_Age | 2013 minus Outlet_Establishment_Year |
+| Item_Category | First 2 characters of Item_Identifier — FD for Food, DR for Drink, NC for Non-consumable |
+| Visibility_Ratio | Item visibility divided by that items mean visibility |
+| MRP_Bucket | Item_MRP cut into 4 bins — Low, Medium, High, Very High |
+| Is_Grocery | Binary flag — 1 if Grocery Store, 0 otherwise |
+
+## Models and Results
+
+| Model | CV RMSE log-space |
+| XGBoost | 0.5615 |
+| LightGBM | 0.5454 |
+| Ridge | 0.5430 |
+| Ensemble 45 / 45 / 10 | Best overall |
+
+### Why log-transform the target?
+
+'Item_Outlet_Sales' is right-skewed. Applying 'log1p' during training and 'expm1' at prediction time reduces the impact of extreme values and helps all three models perform better.
+
+### Ensemble Strategy
+
+Final predictions are a weighted average of all three models.
+
+- 45% XGBoost
+- 45% LightGBM
+- 10% Ridge
+
+
+## Key Insights
+
+- `Item_MRP` is the strongest predictor of sales by a large margin
+- `Outlet_Type` has the biggest categorical impact on sales volume
+- `Outlet_Age` adds useful signal — older stores have more stable, predictable sales
+- Fixing zero-visibility values meaningfully improves model accuracy
+- Standardising fat content labels prevents the model from treating duplicate categories as separate signals
+
+## Requirements
+pandas
+numpy
 scikit-learn
 xgboost
 lightgbm
-matplotlib, seaborn
+matplotlib
+seaborn
+
 
 
